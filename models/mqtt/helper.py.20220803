@@ -1,0 +1,160 @@
+import paho.mqtt.client as paho
+import socket
+import json
+import sys
+
+def internet(host="8.8.8.8", port=53, timeout=3):
+    """
+    Host: 8.8.8.8 (google-public-dns-a.google.com)
+    OpenPort: 53/tcp
+    Service: domain (DNS/TCP)
+    """
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except socket.error as ex:
+        print(ex)
+        return False
+
+global mqtt_status
+
+with open("config.json", "r") as jsonfile:
+    data = json.load(jsonfile)
+    # print("Read successful")
+    if "mqtt" in data:
+        user = data["mqtt"]["user"]
+        password = data["mqtt"]["password"]
+        broker = data["mqtt"]["broker"]
+        transport = data["mqtt"]["transport"]
+        password = data["mqtt"]["password"]
+        topic = data["mqtt"]["topic"]
+        mqtt_status = True
+        market = data["coinbasepro"]["config"]["base_currency"]+"-"+data["coinbasepro"]["config"]["quote_currency"]
+    else:
+        user = ""
+        password = ""
+        broker = ""
+        transport = ""
+        password = ""
+        topic = ""
+        mqtt_status = False
+# user = "mqtt_user"
+# password = "ChestyPuller1775!"
+
+if transport == "websockets":
+    port = 9001
+elif transport == "tcp":
+    port = 1883
+else:
+    port = 1883
+broker_address = broker
+published = False
+
+# set set_user, password, broker, port, transport
+class MQTT:
+    def __init__(self):
+        print("Initializing MQTT")
+        # self.client1 = paho.Client(client_id="", clean_session=True, userdata)
+
+    def set_Market(m):
+        global market
+        market = m
+    def set_mqtt_status(s):
+        global mqtt_status
+        mqtt_status = s
+    def set_user(u):
+        global user
+        user = u
+        print("user: " + user)
+    def set_password(p):
+        global password
+        password = p
+
+    def set_broker(b):
+        global broker_address
+        broker_address = b
+    def set_port(p):
+        global port
+        port = p
+
+    def set_transport(t):
+        global transport
+        transport = t
+    def get_status():
+        return mqtt_status
+    def get_user():
+        return user
+    def get_password():
+        return password
+    def get_broker():
+        return broker_address
+    def get_transport():
+        return transport
+    def get_port():
+        global port
+        # print(transport)
+        if transport == "websockets":
+            port = 9001
+        elif transport == "tcp":
+            port = 1883
+        else:
+            port = 1883
+        return port
+    def get_market():
+        return market
+
+
+
+def on_publish(client, userdata, result):  # create function for callback
+    #  if published:
+    # print("data published \n")
+    #     published=True
+    pass
+
+def on_disconnect():
+    # print("Disconnected result code " + str(rc))
+    client1.loop_stop()
+
+def on_message(client, userdata, message):
+    pass
+    # message_txt = str(message.payload.decode("utf-8"))
+    # print("message received " + message.topic + " " + message_txt)
+
+def on_connect():
+    print("Conected to MQTT server")
+
+def recconnect():
+    print("reconnectin...")
+
+
+# def send_mqtt():
+#     # client1 = paho.Client(client_id="", clean_session=True, userdata=None, transport=transport)  # create client object
+#     # client1.connect_async(MQTT.get_broker(), MQTT.get_port())
+#     # client1.on_publish = on_publish  # assign function to callback
+#     return client1
+
+
+def on_connect(client, userdata, flags, rc):
+    print("Opening MQTT connection...")
+
+
+def mqtt_test_publish(t,c):
+    # print(MQTT.get_status())
+    if(MQTT.get_status()):
+        client1.publish(topic + "/" + MQTT.get_market() + "/"  + t, c)
+    else:
+        # print("MQTT not configured")
+        pass
+
+if(internet()):
+    client1 = paho.Client(client_id="", clean_session=True, userdata=None, transport=transport)  # create client object
+    client1.connect_async(MQTT.get_broker(), MQTT.get_port())
+    client1.on_publish = on_publish  # assign function to callback
+    # client1 = send_mqtt()
+    # client1.on_message = on_message
+    client1.on_connect = on_connect
+    client1.loop_start()  # start the loop
+else:
+    sys.exit("No network conectivity")
+
