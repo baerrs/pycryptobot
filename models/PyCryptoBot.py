@@ -846,6 +846,11 @@ class PyCryptoBot(BotConfig):
     def disableBuyMACD(self) -> bool:
         return self.disablebuymacd
 
+    # =============================================
+    def getmqttuser(self):
+        return BotConfig
+    # =============================================
+
     def disableBuyEMA(self) -> bool:
         return self.disablebuyema
 

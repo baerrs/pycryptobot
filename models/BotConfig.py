@@ -20,6 +20,7 @@ from models.config import (
 from models.exchange.Granularity import Granularity
 from models.exchange.ExchangesEnum import Exchange
 from models.helper.LogHelper import Logger
+from models.mqtt.helper import *
 
 
 class BotConfig:
@@ -93,6 +94,7 @@ class BotConfig:
         self.disableprofitbankupperpcnt = False
         self.disableprofitbankreversal = False
         self.disabletelegram = False
+        self.disablemqtt = False
         self.disablelog = False
         self.disabletracker = False
         self.enableml = False
@@ -237,7 +239,18 @@ class BotConfig:
                 if "datafolder" in telegram:
                     self.telegramdatafolder = telegram["datafolder"]
                 self.telegram = True
-
+##########################
+            if (
+                    not self.disablemqtt
+                    and "mqtt" in self.config
+                    and "mqtt_user" in self.config["mqtt"]
+                    and "broker" in self.config["mqtt"]
+            ):
+                print("Someting worked BotConfig.py line: 247")
+                mqtt = self.config["mqtt"]
+                print(mqtt["mqtt_user"] + " " + mqtt["password"] + " " + mqtt["broker"] + " " + mqtt["transport"])
+                self.telegram = True
+##########################
             if "scanner" in self.config:
                 self.enableexitaftersell = self.config["scanner"]["enableexitaftersell"] if "enableexitaftersell" in self.config["scanner"] else False
                 self.enable_buy_next = True if "enable_buy_now" not in self.config["scanner"] else self.config["scanner"]["enable_buy_now"]

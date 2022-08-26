@@ -1,7 +1,7 @@
 [![Docker](https://github.com/whittlem/pycryptobot/actions/workflows/container.yml/badge.svg)](https://github.com/whittlem/pycryptobot/actions/workflows/container.yml/badge.svg) [![Tests](https://github.com/whittlem/pycryptobot/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/whittlem/pycryptobot/actions/workflows/unit-tests.yml/badge.svg)
 
 
-# Python Crypto Bot v6.3.1 (pycryptobot)
+# Python Crypto Bot v6.3.0 (pycryptobot)
 
 ## Join our chat on Telegram
 
@@ -740,3 +740,6 @@ I've actually included this in the examples in how to start the bot that will do
 If you get stuck with anything email me or raise an issue in the repo and I'll help you sort it out. Raising an issue is probably better as the question and response may help others.
 
 Enjoy and happy trading! :)
+#   p y c r y p t o b o t _ m q t t  
+ #   p y c r y p t o b o t _ m q t t  
+ 

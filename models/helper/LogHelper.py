@@ -1,4 +1,43 @@
 import logging
+import models.mqtt as helper
+# from models.mqtt import helper as helper
+import paho.mqtt.client as paho
+#
+# user = ""
+# password = ""
+# broker = "173.230.128.181"
+# transport = "websockets"  # "websockets" or "tcp"
+# user = "mqtt_user"
+#
+# if transport == "websockets":
+#     port = 9001
+# elif transport == "tcp":
+#     port = 1883
+# else:
+#     port = 1883
+# broker_address = broker
+# password = "ChestyPuller1775!"
+#
+# def on_publish(client,userdata,result):             #create function for callback
+#     pass
+# def on_disconnect():
+#     client1.loop_stop()
+#
+# def recconnect():
+# 	print("reconnectin...")
+#
+# def send_mqtt():
+#     client1 = paho.Client(client_id="", clean_session=True,userdata=None, transport=transport)                           #create client object
+#     client1.connect(broker, port)
+#     client1.on_publish = on_publish  # assign function to callback
+#     return client1
+#
+# def on_connect(client, userdata, flags, rc):
+#     print("Connected with result code "+str(rc))
+#
+#
+# client1 = helper.send_mqtt()
+# client1.loop_start()
 
 
 class Logger:
@@ -73,6 +112,12 @@ class Logger:
     @classmethod
     def info(cls, str):
         cls.logger.info(str)
+
+    def mqtt(topic, str):
+        client1 = helper.send_mqtt()
+        client1.loop_start()
+        ret = client1.publish("PyCryptoBot_test/"+topic, str)
+
 
     @classmethod
     def warning(cls, str):

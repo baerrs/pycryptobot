@@ -13,7 +13,6 @@ import time
 from datetime import datetime, timedelta
 
 import pandas as pd
-
 from models.AppState import AppState
 from models.chat import telegram
 from models.exchange.binance import WebSocketClient as BWebSocketClient
@@ -32,6 +31,10 @@ from models.Strategy import Strategy
 from models.Trading import TechnicalAnalysis
 from models.TradingAccount import TradingAccount
 from views.TradingGraphs import TradingGraphs
+# Stats.data_display()
+from models.mqtt.helper import *
+
+
 
 # minimal traceback
 sys.tracebacklimit = 1
@@ -65,7 +68,7 @@ def execute_job(
     trading_data=pd.DataFrame(),
 ):
     """Trading bot job which runs at a scheduled interval"""
-
+    # MQTT.set_Market(_app.getMarket())
     if app.isLive():
         state.account.mode = "live"
     else:
@@ -88,6 +91,7 @@ def execute_job(
                 text_box.singleLine()
                 Logger.debug("Pausing Bot.")
                 print(str(datetime.now()).format() + " - Bot is paused")
+                helper.mqtt_test_publish("status",str(datetime.now()).format() + " - Bot is paused" )
                 _app.notifyTelegram(f"{_app.getMarket()} bot is paused")
                 telegram_bot.updatebotstatus("paused")
                 if _app.enableWebsocket():
@@ -103,12 +107,14 @@ def execute_job(
             text_box.center(f"Restarting Bot {_app.getMarket()}")
             text_box.singleLine()
             Logger.debug("Restarting Bot.")
+            mqtt_test_publish("status", "Restarting Bot")
             # print(str(datetime.now()).format() + " - Bot has restarted")
             _app.notifyTelegram(f"{_app.getMarket()} bot has restarted")
             telegram_bot.updatebotstatus("active")
             _app.read_config(_app.getExchange())
             if _app.enableWebsocket():
                 Logger.info("Starting _websocket...")
+                Logger
                 _websocket.start()
 
         if controlstatus == "exit":
@@ -117,6 +123,7 @@ def execute_job(
             text_box.center(f"Closing Bot {_app.getMarket()}")
             text_box.singleLine()
             Logger.debug("Closing Bot.")
+            mqtt_test_publish("status", "Closing Bot")
             _app.notifyTelegram(f"{_app.getMarket()} bot is stopping")
             telegram_bot.removeactivebot()
             sys.exit(0)
@@ -313,6 +320,7 @@ def execute_job(
             Logger.info(
                 "*** open order detected smart switching to 300 (5 min) granularity ***"
             )
+            mqtt_test_publish("status", "*** open order detected smart switching to 300 (5 min) granularity ***")
 
         if not _app.telegramTradesOnly():
             _app.notifyTelegram(
@@ -367,6 +375,8 @@ def execute_job(
             Logger.info(
                 "*** smart switch from granularity 3600 (1 hour) to 900 (15 min) ***"
             )
+            mqtt_test_publish("status", "*** smart switch from granularity 3600 (1 hour) to 900 (15 min) ***")
+
 
         if _app.isSimulation():
             _app.sim_smartswitch = True
@@ -531,6 +541,27 @@ def execute_job(
         obv_pc = float(df_last["obv_pc"].values[0])
         elder_ray_buy = bool(df_last["eri_buy"].values[0])
         elder_ray_sell = bool(df_last["eri_sell"].values[0])
+        # mqtt_test_publish("technical_indicators/" + "ema12gtema26",ema12gtema26)
+        # mqtt_test_publish("technical_indicators/" + "ema12gtema26co", ema12gtema26co )
+        # mqtt_test_publish("technical_indicators/" + "goldencross", goldencross)
+        # mqtt_test_publish("technical_indicators/" + "macdgtsignal", macdgtsignal)
+        # mqtt_test_publish("technical_indicators/" + "macdgtsignalco", macdgtsignalco)
+        # mqtt_test_publish("technical_indicators/" + "ema12ltema26", ema12ltema26)
+        # mqtt_test_publish("technical_indicators/" + "ema12ltema26co", ema12ltema26co)
+        # mqtt_test_publish("technical_indicators/" + "macdltsignal", macdltsignal)
+        # mqtt_test_publish("technical_indicators/" + "macdltsignalco", macdltsignalco)
+        # mqtt_test_publish("technical_indicators/" + "obvVVVVV", obv)
+        # mqtt_test_publish("technical_indicators/" + "obv_pc", obv_pc)
+        # mqtt_test_publish("technical_indicators/" + "elder_ray_buy", elder_ray_buy)
+        # mqtt_test_publish("technical_indicators/" + "elder_ray_sell", elder_ray_sell)
+
+
+
+
+        # mqtt = BotConfig.config["mqtt"]
+        # config = PyCryptoBot.getConfig(self)
+        # mqtt = config["mqtt"]
+        # print(mqtt["mqtt_user"] + " " + mqtt["password"] + " " + mqtt["broker"] + " " + mqtt["transport"])
 
         # if simulation, set goldencross based on actual sim date
         if _app.isSimulation():
@@ -550,6 +581,21 @@ def execute_job(
         morning_doji_star = bool(df_last["morning_doji_star"].values[0])
         evening_doji_star = bool(df_last["evening_doji_star"].values[0])
         two_black_gapping = bool(df_last["two_black_gapping"].values[0])
+
+        mqtt_test_publish("candlestick/hammer", hammer)
+        mqtt_test_publish("candlestick/inverted_hammer",inverted_hammer )
+        mqtt_test_publish("candlestick/hanging_man", hanging_man)
+        mqtt_test_publish("candlestick/shooting_star", shooting_star)
+        mqtt_test_publish("candlestick/three_white_soldiers", three_white_soldiers)
+        mqtt_test_publish("candlestick/three_black_crows", three_black_crows)
+        mqtt_test_publish("candlestick/morning_star", morning_star)
+        mqtt_test_publish( "candlestick/evening_star", evening_star)
+        mqtt_test_publish("candlestick/three_line_strike", three_line_strike)
+        mqtt_test_publish("candlestick/abandoned_baby", abandoned_baby)
+        mqtt_test_publish("candlestick/morning_doji_star", morning_doji_star)
+        mqtt_test_publish("candlestick/evening_doji_star", evening_doji_star)
+        mqtt_test_publish("candlestick/two_black_gapping", two_black_gapping)
+
 
         # Log data for Telegram Bot
         telegram_bot.addindicators("EMA", ema12gtema26 or ema12gtema26co)
@@ -1083,7 +1129,7 @@ def execute_job(
 
             else:
                 # set to true for verbose debugging
-                debug = False
+                debug = True
 
                 if debug:
                     Logger.debug(f"-- Iteration: {str(_state.iterations)} --{bullbeartext}")
@@ -1130,25 +1176,62 @@ def execute_job(
                 text_box.line("Currently Above", str(ema12gtema26))
                 text_box.line("Crossing Below", str(ema12ltema26co))
                 text_box.line("Currently Below", str(ema12ltema26))
+                #
+                mqtt_test_publish("status/Iteration", str(_state.iterations) + bullbeartext)
+                mqtt_test_publish("status/Timestamp", str(df_last.index.format()[0]))
+                mqtt_test_publish("status/Close", str(price))
+                mqtt_test_publish("status/EMA12", str(float(df_last["ema12"].values[0])))
+                mqtt_test_publish("status/EMA26", str(float(df_last["ema26"].values[0])))
+                mqtt_test_publish("status/Crossing Above", str(ema12gtema26co))
+                mqtt_test_publish("status/Currently Above", str(ema12gtema26))
+                mqtt_test_publish("status/Crossing Below", str(ema12ltema26co))
+                mqtt_test_publish("status/Currently Below", str(ema12ltema26))
+
+                mqtt_test_publish("technical_indicators/price", str(price))
+                mqtt_test_publish("technical_indicators/ema12",  str(float(df_last["ema12"].values[0])))
+                mqtt_test_publish("technical_indicators/ema26",  str(float(df_last["ema26"].values[0])))
+                mqtt_test_publish("technical_indicators/ema12gtema26co",  str(ema12gtema26co))
+                mqtt_test_publish("technical_indicators/ema12gtema26",  str(ema12gtema26))
+                mqtt_test_publish("technical_indicators/ema12ltema26co",  str(ema12ltema26co))
+                mqtt_test_publish("technical_indicators/ema12ltema2",  str(ema12ltema26))
+                mqtt_test_publish("technical_indicators/sma50",  str(float(df_last["sma50"].values[0])))
+                mqtt_test_publish("technical_indicators/sma200",  str(float(df_last["sma200"].values[0])))
+                mqtt_test_publish("technical_indicators/macd",  str(float(df_last["macd"].values[0])))
+                mqtt_test_publish("technical_indicators/signal",  str(float(df_last["signal"].values[0])))
+                mqtt_test_publish(f"technical_indicators/macdgtsignal",  str(macdgtsignal))
+                mqtt_test_publish(f"technical_indicators/macdltsignal",  str(macdltsignal))
+                mqtt_test_publish(f"technical_indicators/obv",  str(obv))
+                mqtt_test_publish(f"technical_indicators/obv_pc",  str(obv_pc))
+                mqtt_test_publish(f"technical_indicators/action",  str(_state.action))
+
+                # mqtt_test_publish("technical_indicators/obv", obv)
 
                 if ema12gtema26 is True and ema12gtema26co is True:
                     text_box.line(
                         "Condition", "EMA12 is currently crossing above EMA26"
                     )
+                    status = "EMA12 is currently crossing above EMA26"
+                    mqtt_test_publish("status/" + "Condition", status)
                 elif ema12gtema26 is True and ema12gtema26co is False:
                     text_box.line(
                         "Condition",
                         "EMA12 is currently above EMA26 and has crossed over",
                     )
+                    status = "EMA12 is currently above EMA26 and has crossed over"
+                    mqtt_test_publish("status/" + "Condition", status)
                 elif ema12ltema26 is True and ema12ltema26co is True:
                     text_box.line(
                         "Condition", "EMA12 is currently crossing below EMA26"
                     )
+                    status = "EMA12 is currently crossing below EMA26"
+                    mqtt_test_publish("status/" + "Condition", status)
                 elif ema12ltema26 is True and ema12ltema26co is False:
                     text_box.line(
                         "Condition",
                         "EMA12 is currently below EMA26 and has crossed over",
                     )
+                    status = "EMA12 is currently below EMA26 and has crossed over"
+                    mqtt_test_publish("status/" + "Condition", status)
                 else:
                     text_box.line("Condition", "-")
 
@@ -1159,6 +1242,15 @@ def execute_job(
                 text_box.line("Signal", truncate(float(df_last["signal"].values[0])))
                 text_box.line("Currently Above", str(macdgtsignal))
                 text_box.line("Currently Below", str(macdltsignal))
+
+                mqtt_test_publish("status/" + "SMA20", truncate(float(df_last["sma20"].values[0])))
+                mqtt_test_publish("status/" + "SMA200", truncate(float(df_last["sma200"].values[0])))
+                mqtt_test_publish("status/" + "MACD Date-Time",str(df_last.index.format()[0]))
+                mqtt_test_publish("status/" + "MACD", truncate(float(df_last["macd"].values[0])))
+                mqtt_test_publish("status/" + "MACD Signal", truncate(float(df_last["signal"].values[0])))
+                mqtt_test_publish("status/" + "MACD Currently_Above", macdgtsignal)
+                mqtt_test_publish("status/" + "MACD Currently Below", macdltsignal)
+
 
                 if macdgtsignal is True and macdgtsignalco is True:
                     text_box.line(
@@ -1258,7 +1350,7 @@ def execute_job(
 
                         if resp_error == 0:
                             account.basebalance_after = 0
-                            account.quotebalance_after = 0        
+                            account.quotebalance_after = 0
                             try:
                                 ac = account.getBalance()
                                 df_base = ac[ac["currency"] == _app.getBaseCurrency()]["available"]
@@ -1304,7 +1396,7 @@ def execute_job(
                             )
 
                         else: # there was a response error
-                            # only attempt BUY 3 times before exception to prevent continuous loop 
+                            # only attempt BUY 3 times before exception to prevent continuous loop
                             _state.trade_error_cnt += 1
                             if _state.trade_error_cnt >= 2:  # 3 attempts made
                                 raise Exception(
@@ -1537,7 +1629,7 @@ def execute_job(
                         _state.trade_error_cnt = 0
                         _state.last_action = "SELL"
                         _state.action = "DONE"
-                                
+
                         _app.notifyTelegram(
                             _app.getMarket()
                             + " ("
@@ -1567,7 +1659,7 @@ def execute_job(
                             sys.exit(0)
 
                     else: # there was an error
-                        # only attempt SELL 3 times before exception to prevent continuous loop 
+                        # only attempt SELL 3 times before exception to prevent continuous loop
                         _state.trade_error_cnt += 1
                         if _state.trade_error_cnt >= 2:  # 3 attempts made
                             raise Exception(
@@ -1684,7 +1776,7 @@ def execute_job(
                             ].max(),
                             "DF_Low": df[df["date"] <= current_sim_date]["close"].min(),
                         }, index={0})], ignore_index=True)
-                        
+
                     state.in_open_trade = False
                     state.last_api_call_datetime -= timedelta(seconds=60)
                     _state.last_action = "SELL"
@@ -1921,12 +2013,47 @@ def execute_job(
                 Logger.info(
                     f"{now} | {_app.getMarket()}{bullbeartext} | {_app.printGranularity()} | Current Price: {str(price)} | Margin: {str(margin)} | Profit: {str(profit)}"
                 )
+                update_technical_indicators(df_last=df_last)
+                # 2022 - 06 - 29 00: 57:25 | ANKR - USD | 3600 | Current Price: 0.02862 | Margin: -1.38119299 | Profit: -13.5485686
+                coin = _app.getMarket()
+                mqtt_test_publish("/Date-Time", str(now))
+                mqtt_test_publish("/Market", bullbeartext)
+                mqtt_test_publish("/Granularity", _app.printGranularity())
+                mqtt_test_publish("/Price", str(price))
+                mqtt_test_publish("/Margin",  str(margin))
+                mqtt_test_publish("/Profit", str(profit))
+                DF = (str((price - df["close"].max()) / (df["close"].max()) * 100))
+                mqtt_test_publish("/% from DF HIGH", "0")
             else:
                 Logger.info(
-                    f'{now} | {_app.getMarket()}{bullbeartext} | {_app.printGranularity()} | Current Price: {str(price)}{trailing_buy_logtext} | {str(round(((price-df["close"].max()) / df["close"].max())*100, 2))}% from DF HIGH'
+                    f'{now} | {_app.getMarket()}{bullbeartext} | {_app.printGranularity()} | Current Price: {str(price)}{trailing_buy_logtext} | {str(round(((price-df["close"].max()) / df["close"].max())*100, 2))}% from DF HIGH 2026 -- {(str(df["close"].max()))}'
                 )
+                # technical_indicators
+                # TODO:  I would like to send this to the MQTT broker
+                update_technical_indicators(df_last=df_last)
+
+                # # print("**********************Start 8DF Array***************************")
+                # # pd.set_option('display.max_rows', None)
+                # # pd.set_option('display.max_columns', None)
+                # # pd.set_option('display.width', 1000)
+                # # pd.set_option('display.colheader_justify', 'center')
+                # # pd.set_option('display.precision', 3)
+                # # from IPython.display import display
+                # # display(df)
+                # # print("**********************End 8DF Array***************************")
+                #
+                mqtt_test_publish("Date-Time", str(now))
+                mqtt_test_publish("Market", bullbeartext)
+                mqtt_test_publish("Granularity", _app.printGranularity())
+                mqtt_test_publish("Price", str(price))
+                DF = (str((price-df["close"].max()) / (df["close"].max()) * 100))
+                mqtt_test_publish("% from DF HIGH", DF)
+                mqtt_test_publish("Margin",  "0")
+                mqtt_test_publish("Profit", "0")
+
+
                 telegram_bot.addinfo(
-                    f'{now} | {_app.getMarket()}{bullbeartext} | {_app.printGranularity()} | Current Price: {str(price)}{trailing_buy_logtext} | {str(round(((price-df["close"].max()) / df["close"].max())*100, 2))}% from DF HIGH',
+                    f'{now} | {_app.getMarket()}{bullbeartext} | {_app.printGranularity()} | Current Price: {str(price)}{trailing_buy_logtext} | {str(round(((price-df["close"].max()) / df["close"].max())*100, 2))}% from DF HIGH 2041',
                     round(price, 4),
                     str(round(df["close"].max(), 4)),
                     str(
@@ -2065,6 +2192,7 @@ def main():
                 execute_job(s, app, state, technical_analysis, _websocket, trading_data)
             else:
                 execute_job(s, app, state, technical_analysis, _websocket)
+
 
             s.run()
 
